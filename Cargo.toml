@@ -1,0 +1,19 @@
+[package]
+name = "dialogue_bot"
+version = "0.1.0"
+authors = ["Temirkhan Myrzamadi <hirrolot@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+teloxide = { version = "0.5", features = ["macros", "auto-send", "frunk"] }
+log = "0.4"
+pretty_env_logger = "0.4.0"
+tokio = { version =  "1.8", features = ["rt-multi-thread", "macros"] }
+futures = "0.3.5"
+derive_more = "0.99.9"
+frunk = "0.4"
+frunk_core = "0.4"
+lazy_static = "1.4.0"
+regex = "1.5"

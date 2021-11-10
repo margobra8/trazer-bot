@@ -1,11 +1,12 @@
 use crate::dialogue::{states::receive_phone::ReceivePhoneState, Dialogue};
+use serde::{Deserialize, Serialize};
 use teloxide::adaptors::DefaultParseMode;
 use teloxide::prelude::*;
 use teloxide::utils::markdown::code_inline;
 
 use regex::Regex;
 
-#[derive(Clone, Generic)]
+#[derive(Clone, Generic, Serialize, Deserialize)]
 pub struct ReceiveEmailState {
     pub full_name: String,
 }
@@ -21,7 +22,7 @@ async fn receive_email_state(
     cx: TransitionIn<AutoSend<DefaultParseMode<Bot>>>,
     ans: String,
 ) -> TransitionOut<Dialogue> {
-    match EMAILRE.is_match(ans.as_str()) {
+    match EMAILRE.is_match(&ans) {
         true => {
             cx.answer(format!("Genial\\. Dime, ¿cuál es tu número de teléfono móvil\\? Introdúcelo sin prefijos ni espacios: de la forma {}", code_inline("612345678"))).await?;
             next(ReceivePhoneState::up(state, ans))

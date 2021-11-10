@@ -3,7 +3,9 @@ use teloxide::adaptors::DefaultParseMode;
 use teloxide::prelude::*;
 use teloxide::utils::markdown::code_inline;
 
-#[derive(Clone, Generic)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Generic, Serialize, Deserialize)]
 pub struct ReceiveFullNameState;
 
 #[teloxide(subtransition)]

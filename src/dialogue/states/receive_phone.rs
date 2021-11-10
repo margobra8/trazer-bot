@@ -3,9 +3,11 @@ use teloxide::adaptors::DefaultParseMode;
 use teloxide::prelude::*;
 use teloxide::utils::markdown::code_inline;
 
+use serde::{Deserialize, Serialize};
+
 use regex::Regex;
 
-#[derive(Clone, Generic)]
+#[derive(Clone, Generic, Serialize, Deserialize)]
 pub struct ReceivePhoneState {
     pub full_name: String,
     pub email: String,
@@ -21,7 +23,7 @@ async fn receive_phone_state(
     cx: TransitionIn<AutoSend<DefaultParseMode<Bot>>>,
     ans: String,
 ) -> TransitionOut<Dialogue> {
-    match PHONERE.is_match(ans.as_str()) {
+    match PHONERE.is_match(&ans) {
         true => {
             cx.answer(format!(
                 "¿Cuál es tu DNI\\? Escríbelo con 8 dígitos y letra mayúscula de la forma {}",

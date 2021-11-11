@@ -1,38 +1,55 @@
-use redis::aio::Connection;
+use redis::{aio::Connection, AsyncCommands, IntoConnectionInfo, RedisError, RedisResult};
 use std::sync::Arc;
+use teloxide::types::User;
+use tokio::sync::Mutex;
 
-#[derive(Clone)]
 pub struct ConnectionContext {
-    redis_connection: Arc<Connection>,
+    redis_connection: Mutex<Connection>,
     ans: String,
 }
 
 impl ConnectionContext {
-    pub fn new(redis_connection: Connection) -> ConnectionContext {
-        Self {
-            redis_connection: Arc::new(redis_connection),
+    pub async fn open(redis_url: impl IntoConnectionInfo) -> Result<Arc<Self>, RedisError> {
+        Ok(Arc::new(Self {
+            redis_connection: Mutex::new(
+                redis::Client::open(redis_url)?
+                    .get_async_connection()
+                    .await?,
+            ),
             ans: String::new(),
-        }
+        }))
     }
     pub fn set_ans(&mut self, ans: String) {
         self.ans = ans;
     }
-    pub fn set_redis_connection(&mut self, redis_connection: Arc<Connection>) {
-        self.redis_connection = redis_connection;
-    }
     pub fn get_ans_clone(&self) -> String {
         self.ans.clone()
     }
-    pub fn get_ans_as_ref(&self) -> &str {
-        self.ans.as_str()
+    pub async fn add_user_presence(self: Arc<Self>, user: &User) -> Result<(), RedisError> {
+        self.redis_connection
+            .lock()
+            .await
+            .sadd(
+                "present",
+                user.clone()
+                    .username
+                    .unwrap_or("usuario_random".to_string()),
+            )
+            .await
     }
-    pub fn get_redis_connection_clone(&self) -> Arc<Connection> {
-        self.redis_connection.clone()
+    pub async fn delete_user_presence(self: Arc<Self>, user: &User) -> Result<(), RedisError> {
+        self.redis_connection
+            .lock()
+            .await
+            .srem(
+                "present",
+                user.clone()
+                    .username
+                    .unwrap_or("usuario_random".to_string()),
+            )
+            .await
     }
-    pub fn get_redis_connection_as_ref(&self) -> &Connection {
-        self.redis_connection.as_ref()
-    }
-    pub fn get_redis_connection_as_mut_ref(&mut self) -> &mut Connection {
-        self.redis_connection.as_ref()
+    pub async fn get_presence_count(self: Arc<Self>) -> Result<u32, RedisError> {
+        self.redis_connection.lock().await.scard("present").await
     }
 }

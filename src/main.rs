@@ -11,9 +11,10 @@ mod dialogue;
 use crate::contexts::connections::ConnectionContext;
 use crate::dialogue::Dialogue;
 
-use std::{env};
+use std::env;
+use url::Url;
 
-use redis::{Client};
+use redis::Client;
 
 use teloxide::{
     adaptors::DefaultParseMode,
@@ -52,16 +53,15 @@ async fn run() {
         .parse()
         .unwrap();
 
-    let redis_connection = Client::open(format!("redis://{}:{}", &redis_hostname, &redis_port))
-        .unwrap()
-        .get_tokio_connection()
-        .await
-        .unwrap();
-
+    let connection_context = match ConnectionContext::open(
+        Url::parse(format!("redis://{}:{}", &redis_hostname, &redis_port).as_str()).unwrap(),
+    )
+    .await
+    {
+        Ok(conn) => conn,
+        Err(e) => panic!("No se ha podido establecer la conexión a Redis o Selenium"),
+    };
     log::info!(target: "redis_backend", "Conexión OK a Redis en {}:{}", &redis_hostname, &redis_port);
-
-    let context_c = ConnectionContext::new(redis_connection);
-
     log::info!(target: "connection_context", "ConnectionContext creado con Redis y Selenium");
 
     let bot =

@@ -20,3 +20,4 @@ regex = "1.5"
 redis = { version = "0.21", features = ["aio", "tokio-comp"] }
 thiserror = "1.0"
 serde = "1.0"
+url = "2.2.2"
